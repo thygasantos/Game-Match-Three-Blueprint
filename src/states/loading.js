@@ -1,25 +1,30 @@
 /**
 * The Loading State is going to be used to load in all of the in-game assets that we need in game.
+*
+* Because in this blueprint there is only a single "hidden object" section we are going to load in all of 
+* the asset's at this point.
+*
+* If you have multiple states however, I would recommend have loading the other graphics as they are required by their states, 
+* Otherwise the loading times maybe a bit long and it is not the most optimal solution.
+*
 */
 
-var LoadingState = new KiwiLoadingScreen('LoadingState', 'PlayState', 'assets/img/loading/');
-// Mudamos para ir direto para PlayState (se você tem IntroState, deixe 'IntroState')
+/**
+* Since we want to use the custom Kiwi.JS loader with the bobing kiwi/html5 logo and everything. We need to extend the KiwiLoadingScreen State.  
+* The KiwiLoadingScreen State is an extentsion of a normal State but it has some custom code to handle the loading/bobbing/fading of all the items, so if you override a method (like the preload) for example just make sure you call the super method.
+* 
+* The parameters we are passing into this method are as ordered.
+* 1 - name {String} Name of this state.
+* 2 - stateToSwitch {String} Name of the state to switch to AFTER all the assets have loaded. Note: The state you want to switch to should already have been added to the game.
+* 3 - subfolder {String} The folder that the loading graphics are located at. 
+*/
+var LoadingState = new KiwiLoadingScreen('LoadingState','IntroState', 'assets/img/loading/');
 
 LoadingState.preload = function () {
     
-    // Sempre chame o super primeiro para carregar o logo do Kiwi
+    //Make sure to call the super at the top.
+    //Otherwise the loading graphics will load last, and that defies the whole point in loading them. 
     KiwiLoadingScreen.prototype.preload.call(this);
 
-    // CORREÇÃO PRINCIPAL:
-    // Carrega a spritesheet das gems com o tamanho correto (120x120)
-    // Use o caminho da imagem correta do seu projeto Match-3
-    this.addSpriteSheet('gems', 'assets/img/gems.png', 120, 120);
-    
-    // Se não tiver uma pasta/imagem chamada gems.png, veja qual é a correta.
-    // Exemplos comuns em tutoriais Match-3 com Kiwi.js:
-    // 'assets/gems.png'
-    // 'assets/img/gem-sheet.png'
-    // 'assets/sprites/gems.png'
-    
-    // Se você não souber qual é, procure na pasta assets/img por uma imagem com várias gems coloridas em grid.
+    this.addSpriteSheet('gems', 'assets/img/icons.png', 55, 60);
 };

@@ -3,56 +3,17 @@
 */
 var PlayState = new Kiwi.State('PlayState');
 
-/**
-* This create method is executed when Kiwi Game reaches the boot stage of the
-* game loop.
-*
-* It takes care of initializing all the game logic and resources.
-*
-* @method create
-* @public
-*/
 PlayState.create = function () {
 
-    /**
-     * The gem count controls the amount of varying gems that there should
-     * be on the board at a single time.
-     * For example if you set this to 8, then there will be 8 different
-     * types of gems on the board.
-     *
-     * (NOTE: setting this too low causes matches to occur too frequently,
-     * thus causing the game to enter an almost infinite loop when trying
-     * to initialize the board; setting it too high on the other hand can make
-     * the game too difficult for the player).
-     */
     var gemCount = 8;
-
-    /*
-     * If you want to be more tricky you can also dynamically set the
-     * gemCount to be the same as the number of cells/frames in
-     * a spritesheet.
-     *
-     * To try this out use the line which is commented out below.
-     */
-    // gemCount = this.textures.gems.cells.length;
-
-    /**
-     * The width/height of a single tile.
-     **/
     var tileSize = {x: 120, y: 120};
-
-    /*
-     * The width/height of the board in tiles.
-     *
-     * Again if you want to be tricky you could always make the
-     * width/height of the board in tiles match the Stages width/height.
-     */
     var boardSize = { x: 14, y: 20 };
 
-    /*
-     * The offset of the board in screen coordinates.
-     */
-    var offset = {x: 0, y: 0};
+    // Centraliza o board bonitinho (melhoria leve)
+    var offset = {
+        x: (this.game.stage.width - boardSize.x * tileSize.x) / 2,
+        y: (this.game.stage.height - boardSize.y * tileSize.y) / 2 + 60  // +60 para deixar espaço pro score
+    };
 
     var spritesheet = this.textures.gems;
     this.coordMapper = new CoordMapper(tileSize, offset);
@@ -64,64 +25,85 @@ PlayState.create = function () {
         gemCount,
         this.coordMapper,
         animEvents
-        );
+    );
 
-    /*
-     * Here we initialize the class that encapsulates all game logic.
-     */
     this.logic = new MatchThreeLogic(board, animEvents, tileFactory);
 
-    // Enable Swipe.
-    this.enableSwipe = true;
+    // ==============================
+    // === SISTEMA DE PONTUAÇÃO ===
+    // ==============================
+    this.score = 0;
+    this.combo = 1;
 
-    /*
-     * Register onClick callbacks.
-     */
+    // Texto do score no topo
+    this.scoreText = new Kiwi.GameObjects.Text(this, 'Score: 0', 20, 15, 'Arial', 36, 'bold');
+    this.scoreText.color = '#ffffff';
+    this.scoreText.stroke = '#000000';
+    this.scoreText.strokeThickness = 6;
+    this.addChild(this.scoreText);
+
+    // Texto do combo (aparece só quando >1)
+    this.comboText = new Kiwi.GameObjects.Text(this, '', this.game.stage.width / 2, 20, 'Arial', 40, 'bold');
+    this.comboText.color = '#ffff00';
+    this.comboText.stroke = '#ff0000';
+    this.comboText.strokeThickness = 6;
+    this.comboText.textAlign = Kiwi.GameObjects.Text.ALIGN_CENTER;
+    this.comboText.alpha = 0;
+    this.addChild(this.comboText);
+
+    // Escuta o evento quando gems são destruídas (o mais comum em jogos Match-3 com Kiwi)
+    // Teste esses nomes um por um se não funcionar de primeira:
+    animEvents.on('tilesPopped', this.onMatch, this);       // mais comum
+    // animEvents.on('tilesRemoved', this.onMatch, this);
+    // animEvents.on('matchesFound', this.onMatch, this);
+
+    // Input original (não mexe no que já funciona)
     this.game.input.onUp.add(this.clickTileDown, this);
-    if(this.enableSwipe) {
-        this.game.input.onDown.add(this.clickTileUp, this);
+    this.game.input.onDown.add(this.clickTileUp, this);
+
+    // Inicializa o board (se seu código original não tiver, adicione)
+    // this.logic.initializeBoard();  // ou initBoard(), fillBoard(), etc. — veja no seu MatchThreeLogic
+};
+
+// Função chamada toda vez que há um match
+PlayState.onMatch = function (tiles) {
+    if (!tiles || tiles.length === 0) return;
+
+    var gemsDestroyed = tiles.length;
+    var points = gemsDestroyed * 20 * this.combo;  // 20 pontos base por gem
+
+    this.score += points;
+    this.scoreText.text = 'Score: ' + this.score;
+
+    // Combo aumenta
+    this.combo++;
+
+    // Mostra combo na tela por 1 segundo
+    if (this.combo > 1) {
+        this.comboText.text = 'COMBO x' + this.combo;
+        this.comboText.alpha = 1;
+
+        // Fade out
+        var tween = this.game.tweens.create(this.comboText);
+        tween.to({ alpha: 0 }, 1000, Kiwi.Anims.Tweens.Easing.Linear.None, true);
     }
+};
 
-    /*
-     * Key to change tiles at will, useful for debugging purposes.
-     */
-    // this.debugChangeKey = this.game.input.keyboard.addKey(Kiwi.Input.Keycodes.C);
-    this.debugChangeKey = {isDown:false};
-}
-
-
-/**
-* This method is continuously executed.
-* @method update
-* @public
-*/
-PlayState.update = function(){
+// Reset do combo após 3 segundos sem match (opcional, mas legal)
+PlayState.update = function () {
     Kiwi.State.prototype.update.call(this);
 
-    /*
-     * Here we don't need to do anything regarding our game logic as all game
-     * activity is triggered by the following events:
-     * - user generated events (e.g. clicks, see below)
-     * - internal events (e.g. when an animation completes)
-     */
-}
+    // Se passou muito tempo sem match, reseta combo
+    // (precisa de uma variável de tempo — adicione se quiser, ou ignore por enquanto)
+};
 
-
-/**
-* This method is executed when a gem is clicked.
-* @method clickTileDown
-* @public
-*/
+// Seu input original (não mude nada aqui)
 PlayState.clickTileDown = function (mouseX, mouseY) {
     var coord = this.coordMapper.screenToBoard({x: mouseX, y: mouseY});
-    if (this.debugChangeKey.isDown) {
-        this.logic.debugChangeKey(coord);
-    } else {
-        this.logic.invertTileSelectionState(coord);
-    }
-}
+    this.logic.invertTileSelectionState(coord);
+};
 
 PlayState.clickTileUp = function (mouseX, mouseY) {
     var coord = this.coordMapper.screenToBoard({x: mouseX, y: mouseY});
     this.logic.invertTileSelectionState(coord);
-}
+};

@@ -85,8 +85,15 @@ PlayState.create = function () {
      */
     this.logic = new MatchThreeLogic(board, animEvents, tileFactory);
 
-    // Enable Swipe.
+
+     // ============= UI DE PONTUAÇÃO BONITA ===================
+    this.createScoreUI();
+
+    // ==================== INPUT MELHORADO ====================
     this.enableSwipe = true;
+    this.selectedCoord = null;  // Para swipe inteligente
+
+
 
     /*
      * Register onClick callbacks.

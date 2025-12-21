@@ -53,10 +53,22 @@ PlayState.create = function () {
     var comboResetDelay = 4000;  // ms sem match para resetar combo
   
 
-    /*
-     * The offset of the board in screen coordinates.
-     */
-    var offset = {x: 0, y: 0};
+    // Calcula offset para CENTRALIZAR o board perfeitamente
+    var boardPixelW = this.config.boardSize.x * this.config.tileSize.x;
+    var boardPixelH = this.config.boardSize.y * this.config.tileSize.y;
+    var offset = {
+        x: Math.max(0, (this.game.stage.width - boardPixelW) / 2),
+        y: Math.max(60, (this.game.stage.height - boardPixelH) / 2)  // Espaço para UI no topo
+    };
+
+    // ==================== SISTEMA DE PONTUAÇÃO ====================
+    this.score = 0;
+    this.highScore = parseInt(localStorage.getItem('match3_highscore') || '0', 10);
+    this.combo = 1;
+    this.lastMatchTime = 0;
+    this.level = 1;  // Aumenta a cada 5000 pontos
+
+
 
     var spritesheet = this.textures.gems;
     this.coordMapper = new CoordMapper(tileSize, offset);

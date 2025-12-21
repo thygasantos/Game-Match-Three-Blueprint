@@ -49,6 +49,10 @@ PlayState.create = function () {
      */
     var boardSize = { x: 14, y: 20 };
 
+    var basePointsPerGem = 25;      
+    var comboResetDelay = 4000;  // ms sem match para resetar combo
+  
+
     /*
      * The offset of the board in screen coordinates.
      */

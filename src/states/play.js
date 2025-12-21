@@ -91,7 +91,7 @@ PlayState.create = function () {
 
     // ==================== INPUT MELHORADO ====================
     this.enableSwipe = true;
-    this.selectedCoord = null;  // Para swipe inteligente
+    
 
 
 

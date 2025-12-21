@@ -22,13 +22,10 @@ PlayState.create = function () {
     this.lastMatchTime = 0;
     this.level = 1;
 
-    // Centraliza o board
-    var boardW = this.config.boardSize.x * this.config.tileSize.x;
-    var boardH = this.config.boardSize.y * this.config.tileSize.y;
-    var offset = {
-        x: (this.game.stage.width - boardW) / 2,
-        y: (this.game.stage.height - boardH) / 2 + 80
-    };
+     /*
+     * The offset of the board in screen coordinates.
+     */
+    var offset = {x: 0, y: 0};
 
     // ==================== CORE (original) ====================
     var gemCount = this.config.gemCount;
